@@ -1,4 +1,22 @@
 #!/usr/bin/env python3
+"""
+EcoTrack - Environmental Monitoring System
+
+This is the main entry point for the EcoTrack system, which collects, analyzes, and
+visualizes environmental data from distributed sensor networks. The system supports
+real-time monitoring, anomaly detection, trend prediction, and community engagement
+through a web API.
+
+Usage:
+    python main.py --mode collect --sensor-id SENSOR_ID
+    python main.py --mode analyze --timeframe 24h
+    python main.py --mode predict --timeframe 7d
+    python main.py --mode serve
+
+Author: Jeremy Mitts (jeremy.mitts@atlasschool.com)
+GitHub: https://github.com/jerm014
+Version: 1.2.0
+"""
 
 import os
 import sys
@@ -8,6 +26,7 @@ import logging
 import argparse
 from datetime import datetime
 
+# Data processing and analysis libraries
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -15,6 +34,7 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.preprocessing import StandardScaler
 import tensorflow as tf
 
+# EcoTrack modules
 from ecotrack.sensors import SensorNetwork, SensorTypes
 from ecotrack.data import DataProcessor, TimeSeriesAnalyzer
 from ecotrack.api import APIServer
@@ -27,6 +47,16 @@ CONFIG_PATH = os.environ.get('ECOTRACK_CONFIG', './config/settings.json')
 LOG_PATH = os.environ.get('ECOTRACK_LOGS', './logs')
 
 def setup_logging():
+    """
+    Configure and set up the logging system for EcoTrack.
+    
+    Creates the log directory if it doesn't exist and configures logging to write to both
+    a timestamped log file and stdout. The log format includes timestamp, logger name,
+    level, and message.
+    
+    Returns:
+        logging.Logger: Configured logger instance for the application
+    """
     if not os.path.exists(LOG_PATH):
         os.makedirs(LOG_PATH)
     
@@ -41,6 +71,19 @@ def setup_logging():
     return logging.getLogger('ecotrack')
 
 def parse_arguments():
+    """
+    Parse command line arguments for the EcoTrack application.
+    
+    Defines and processes the following command line arguments:
+        --config: Path to the configuration file
+        --mode: Operation mode (collect, analyze, predict, serve)
+        --sensor-id: ID of a specific sensor to operate on
+        --timeframe: Time period for analysis or prediction
+        --debug: Flag to enable debug logging
+    
+    Returns:
+        argparse.Namespace: Parsed command line arguments
+    """
     parser = argparse.ArgumentParser(description='EcoTrack Environmental Monitoring System')
     parser.add_argument('--config', type=str, default=CONFIG_PATH, help='Path to configuration file')
     parser.add_argument('--mode', type=str, choices=['collect', 'analyze', 'predict', 'serve'], 
@@ -52,10 +95,44 @@ def parse_arguments():
     return parser.parse_args()
 
 def load_config(config_path):
+    """
+    Load application configuration from the specified path.
+    
+    Uses the ConfigManager utility to parse and validate the configuration file.
+    The configuration includes settings for sensors, data processing, analysis,
+    visualization, API, and notification services.
+    
+    Args:
+        config_path (str): Path to the configuration file (JSON format)
+        
+    Returns:
+        dict: Loaded and validated configuration dictionary
+        
+    Raises:
+        FileNotFoundError: If the configuration file doesn't exist
+        JSONDecodeError: If the configuration file contains invalid JSON
+    """
     config_manager = ConfigManager(config_path)
     return config_manager.load()
 
 def collect_sensor_data(config, sensor_id=None):
+    """
+    Collect and process data from sensors in the network.
+    
+    This function connects to the sensor network, retrieves data from either a specific
+    sensor or all available sensors, processes the raw data, saves it to disk, and
+    performs anomaly detection. If anomalies are detected, alerts are sent through
+    the notification system.
+    
+    Args:
+        config (dict): Application configuration dictionary containing sensor settings,
+                      data processing parameters, and notification options
+        sensor_id (str, optional): ID of a specific sensor to collect data from.
+                                  If None, collects from all sensors.
+    
+    Raises:
+        Exception: Logs any errors during sensor data collection but doesn't propagate them
+    """
     logger.info("Initializing sensor network...")
     sensor_network = SensorNetwork(config['sensors'])
     
@@ -200,6 +277,18 @@ def serve_api(config):
     api_server.start()
 
 def main():
+    """
+    Main entry point for the EcoTrack application.
+    
+    This function orchestrates the overall flow of the application:
+    1. Parse command line arguments
+    2. Set up logging
+    3. Load configuration
+    4. Execute the requested operation mode (collect, analyze, predict, or serve)
+    
+    The function handles the entire application lifecycle and exits appropriately
+    based on success or failure of operations.
+    """
     args = parse_arguments()
     
     global logger
