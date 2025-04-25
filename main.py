@@ -3,10 +3,10 @@
 EcoTrack - Environmental Monitoring System
 ==================================================
 
-This is the main entry point for the EcoTrack system, which collects, analyzes, and
-visualizes environmental data from distributed sensor networks. The system supports
-real-time monitoring, anomaly detection, trend prediction, and community engagement
-through a web API.
+This is the main entry point for the EcoTrack system, which collects, analyzes,
+and visualizes environmental data from distributed sensor networks. The system
+supports real-time monitoring, anomaly detection, trend prediction, and
+community engagement through a web API.
 
 Features:
     - Multi-sensor data collection and integration
@@ -88,7 +88,8 @@ class EcoTrackApp:
         Initialize the EcoTrack application.
         
         Args:
-            args (List[str], optional): Command line arguments. If None, sys.argv is used.
+            args (List[str], optional): Command line arguments.
+                If None, sys.argv is used.
         """
         # Parse command line arguments
         self.args = self._parse_arguments(args)
@@ -102,7 +103,8 @@ class EcoTrackApp:
             self.logger.debug("Debug mode enabled")
         
         # Load configuration
-        self.config_path = self.args.config or os.environ.get('ECOTRACK_CONFIG', self.DEFAULT_CONFIG_PATH)
+        self.config_path = self.args.config or os.environ.get(
+            'ECOTRACK_CONFIG', self.DEFAULT_CONFIG_PATH)
         self.config = self._load_config()
         self.logger.info(f"Loaded configuration from {self.config_path}")
         
@@ -114,21 +116,34 @@ class EcoTrackApp:
         Parse command line arguments for the EcoTrack application.
         
         Args:
-            args (List[str], optional): Command line arguments. If None, sys.argv is used.
+            args (List[str], optional): Command line arguments.
+                If None, sys.argv is used.
             
         Returns:
             argparse.Namespace: Parsed command line arguments
         """
         # Create argument parser with application description
-        parser = argparse.ArgumentParser(description='EcoTrack Environmental Monitoring System')
+        parser = argparse.ArgumentParser(
+            description='EcoTrack Environmental Monitoring System')
         
         # Define command line arguments
-        parser.add_argument('--config', type=str, help='Path to configuration file')
-        parser.add_argument('--mode', type=str, choices=['collect', 'analyze', 'predict', 'serve'], 
-                          default='collect', help='Operation mode')
-        parser.add_argument('--sensor-id', type=str, help='Specific sensor ID to operate on')
-        parser.add_argument('--timeframe', type=str, default='24h', help='Timeframe for analysis (e.g. 24h, 7d, 30d)')
-        parser.add_argument('--debug', action='store_true', help='Enable debug mode')
+        parser.add_argument(
+            '--config', type=str, help='Path to configuration file')
+        parser.add_argument(
+            '--mode',
+            type=str,
+            choices=['collect', 'analyze', 'predict', 'serve'],
+            default='collect',
+            help='Operation mode')
+        parser.add_argument(
+            '--sensor-id', type=str, help='Specific sensor ID to operate on')
+        parser.add_argument(
+            '--timeframe',
+            type=str,
+            default='24h',
+            help='Timeframe for analysis (e.g. 24h, 7d, 30d)')
+        parser.add_argument(
+            '--debug', action='store_true', help='Enable debug mode')
         
         # Parse and return arguments
         return parser.parse_args(args)
@@ -147,12 +162,16 @@ class EcoTrackApp:
         if not os.path.exists(log_path):
             os.makedirs(log_path)
         
+        # Generate a timestamp for the log file
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        log_file = f"{log_path}/ecotrack_{timestamp}.log"
+        
         # Configure logging with file and console output
         logging.basicConfig(
             level=logging.INFO,
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
             handlers=[
-                logging.FileHandler(f"{log_path}/ecotrack_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"),
+                logging.FileHandler(log_file),
                 logging.StreamHandler(sys.stdout)
             ]
         )
@@ -175,22 +194,24 @@ class EcoTrackApp:
     
     def _create_operation_handler(self) -> 'OperationHandler':
         """
-        Create the appropriate operation handler based on the command line arguments.
+        Create the appropriate operation handler based on the command line args.
         
         Returns:
-            OperationHandler: An instance of the appropriate operation handler subclass
+            OperationHandler: An instance of the appropriate handler subclass
         """
         # Select and create the appropriate handler based on operation mode
         if self.args.mode == 'collect':
             return CollectionHandler(self.config, self.logger, self.args.sensor_id)
         elif self.args.mode == 'analyze':
-            return AnalysisHandler(self.config, self.logger, self.args.timeframe, self.args.sensor_id)
+            return AnalysisHandler(
+                self.config, self.logger, self.args.timeframe, self.args.sensor_id)
         elif self.args.mode == 'predict':
-            return PredictionHandler(self.config, self.logger, self.args.timeframe, self.args.sensor_id)
+            return PredictionHandler(
+                self.config, self.logger, self.args.timeframe, self.args.sensor_id)
         elif self.args.mode == 'serve':
             return APIHandler(self.config, self.logger)
         else:
-            # This should not happen due to argparse choices, but added for completeness
+            # This should not happen due to argparse choices
             self.logger.error(f"Unknown mode: {self.args.mode}")
             raise ValueError(f"Unknown operation mode: {self.args.mode}")
     
@@ -198,7 +219,7 @@ class EcoTrackApp:
         """
         Run the EcoTrack application with the configured operation handler.
         
-        Executes the selected operation mode and handles any exceptions that occur.
+        Executes the selected operation mode and handles any exceptions.
         
         Returns:
             None
@@ -231,8 +252,8 @@ class OperationHandler(ABC):
     """
     Abstract base class for operation handlers.
     
-    This class defines the interface for all operation handlers in the EcoTrack system.
-    Each concrete implementation handles a specific operation mode.
+    This class defines the interface for all operation handlers in the
+    EcoTrack system. Each concrete implementation handles a specific mode.
     
     Attributes:
         config (Dict): Application configuration dictionary
@@ -274,17 +295,23 @@ class CollectionHandler(OperationHandler):
     processing it, checking for anomalies, and storing results.
     
     Attributes:
-        sensor_id (Optional[str]): ID of a specific sensor to collect from, or None for all
+        sensor_id (Optional[str]): ID of a specific sensor to collect from,
+            or None for all
     """
     
-    def __init__(self, config: Dict, logger: logging.Logger, sensor_id: Optional[str] = None):
+    def __init__(
+            self,
+            config: Dict,
+            logger: logging.Logger,
+            sensor_id: Optional[str] = None):
         """
         Initialize the collection handler.
         
         Args:
             config (Dict): Application configuration dictionary
             logger (logging.Logger): Application logger
-            sensor_id (Optional[str]): ID of a specific sensor to collect from, or None for all
+            sensor_id (Optional[str]): ID of a specific sensor to collect from,
+                or None for all
         """
         super().__init__(config, logger)
         self.sensor_id = sensor_id
@@ -318,7 +345,8 @@ class CollectionHandler(OperationHandler):
         for sensor in sensors:
             try:
                 # Read and process data from the sensor
-                self.logger.info(f"Reading from {sensor.type} sensor at {sensor.location}")
+                self.logger.info(
+                    f"Reading from {sensor.type} sensor at {sensor.location}")
                 raw_data = sensor.read()
                 processed_data = data_processor.process(raw_data, sensor.type)
                 
@@ -330,15 +358,18 @@ class CollectionHandler(OperationHandler):
                 with open(filename, 'w') as f:
                     json.dump(processed_data, f)
                 
-                self.logger.info(f"Data from sensor {sensor.id} stored in {filename}")
+                self.logger.info(
+                    f"Data from sensor {sensor.id} stored in {filename}")
                 
                 # Check for anomalies in the data
-                anomaly_detector = AnomalyDetector(self.config['anomaly_detection'])
+                anomaly_detector = AnomalyDetector(
+                    self.config['anomaly_detection'])
                 anomalies = anomaly_detector.detect(processed_data)
                 
                 # Send notifications for any detected anomalies
                 if anomalies:
-                    self.logger.warning(f"Anomalies detected from sensor {sensor.id}: {anomalies}")
+                    self.logger.warning(
+                        f"Anomalies detected from sensor {sensor.id}: {anomalies}")
                     notifier = Notifier(self.config['notifications'])
                     notifier.send_alert(
                         subject=f"Anomaly detected from sensor {sensor.id}",
@@ -347,7 +378,8 @@ class CollectionHandler(OperationHandler):
                     )
             except Exception as e:
                 # Log errors but continue processing other sensors
-                self.logger.error(f"Error collecting data from sensor {sensor.id}: {str(e)}")
+                self.logger.error(
+                    f"Error collecting data from sensor {sensor.id}: {str(e)}")
 
 #-----------------------------------------------------------------------------
 # TIMEFRAME UTILITY CLASS
@@ -385,7 +417,8 @@ class TimeFrame:
         Parse the timeframe string into value and unit components.
         
         Returns:
-            tuple: (value, unit) tuple where value is an integer and unit is 'h' or 'd'
+            tuple: (value, unit) tuple where value is an integer and
+                unit is 'h' or 'd'
             
         Raises:
             ValueError: If the timeframe string format is invalid
@@ -399,14 +432,18 @@ class TimeFrame:
             return int(self.timeframe_str[:-1]), 'd'
         else:
             # Invalid format
-            raise ValueError(f"Invalid timeframe format: {self.timeframe_str}. Expected format like '24h' or '7d'")
+            raise ValueError(
+                f"Invalid timeframe format: {self.timeframe_str}. "
+                f"Expected format like '24h' or '7d'"
+            )
     
     def get_time_range(self, end_time: Optional[datetime] = None) -> tuple:
         """
         Calculate the start and end times based on the timeframe.
         
         Args:
-            end_time (datetime, optional): End time for the range. Defaults to current time.
+            end_time (datetime, optional): End time for the range.
+                Defaults to current time.
             
         Returns:
             tuple: (start_time, end_time) tuple with datetime objects
@@ -461,23 +498,30 @@ class AnalysisHandler(OperationHandler):
     """
     Handler for the data analysis operation mode.
     
-    This handler manages the process of loading sensor data for a specified timeframe,
-    performing time-series analysis, and generating visualizations and reports.
+    This handler manages the process of loading sensor data for a specified
+    timeframe, performing time-series analysis, and generating visualizations.
     
     Attributes:
         timeframe (TimeFrame): Time period for analysis
-        sensor_id (Optional[str]): ID of a specific sensor to analyze, or None for all
+        sensor_id (Optional[str]): ID of a specific sensor to analyze,
+            or None for all
     """
     
-    def __init__(self, config: Dict, logger: logging.Logger, timeframe_str: str, sensor_id: Optional[str] = None):
+    def __init__(
+            self,
+            config: Dict,
+            logger: logging.Logger,
+            timeframe_str: str,
+            sensor_id: Optional[str] = None):
         """
         Initialize the analysis handler.
         
         Args:
             config (Dict): Application configuration dictionary
             logger (logging.Logger): Application logger
-            timeframe_str (str): Time period for analysis in format '24h', '7d', etc.
-            sensor_id (Optional[str]): ID of a specific sensor to analyze, or None for all
+            timeframe_str (str): Time period for analysis in format '24h', '7d'
+            sensor_id (Optional[str]): ID of a specific sensor to analyze,
+                or None for all
         """
         super().__init__(config, logger)
         # Convert the timeframe string to a TimeFrame object
@@ -488,7 +532,7 @@ class AnalysisHandler(OperationHandler):
         """
         Execute the data analysis operation.
         
-        Loads sensor data for the specified timeframe, performs time-series analysis,
+        Loads sensor data for the specified timeframe, performs analysis,
         generates visualizations, and saves results to disk.
         
         Returns:
@@ -508,7 +552,8 @@ class AnalysisHandler(OperationHandler):
         
         # Filter files for specific sensor if requested
         if self.sensor_id:
-            data_files = [f for f in data_files if f.startswith(f"{self.sensor_id}_")]
+            data_files = [f for f in data_files 
+                         if f.startswith(f"{self.sensor_id}_")]
         
         # Check if any files are available
         if not data_files:
@@ -516,7 +561,8 @@ class AnalysisHandler(OperationHandler):
             return
         
         # Load data from files within the specified timeframe
-        all_data = self._load_data_files(data_files, data_dir, start_time, end_time)
+        all_data = self._load_data_files(
+            data_files, data_dir, start_time, end_time)
         
         # Check if any data was found in the timeframe
         if not all_data:
@@ -532,8 +578,12 @@ class AnalysisHandler(OperationHandler):
         # Generate visualizations and save results
         self._save_analysis_results(results)
     
-    def _load_data_files(self, data_files: List[str], data_dir: str, 
-                        start_time: datetime, end_time: datetime) -> List[Dict]:
+    def _load_data_files(
+            self,
+            data_files: List[str],
+            data_dir: str,
+            start_time: datetime,
+            end_time: datetime) -> List[Dict]:
         """
         Load and filter data files based on the specified time range.
         
@@ -544,7 +594,7 @@ class AnalysisHandler(OperationHandler):
             end_time (datetime): End of the time range to include
             
         Returns:
-            List[Dict]: List of data dictionaries from the files within the time range
+            List[Dict]: List of data dictionaries within the time range
         """
         all_data = []
         # Process each data file
@@ -555,7 +605,7 @@ class AnalysisHandler(OperationHandler):
                 with open(file_path, 'r') as f:
                     data = json.load(f)
                     
-                # Extract timestamp from filename (format: sensorID_YYYYMMDDHHMMSS.json)
+                # Extract timestamp from filename (format: sensorID_YYYYMMDDHHMMSS)
                 timestamp_str = file.split('_')[1].split('.')[0]
                 timestamp = datetime.strptime(timestamp_str, "%Y%m%d%H%M%S")
                 
@@ -565,7 +615,8 @@ class AnalysisHandler(OperationHandler):
                     all_data.append(data)
             except Exception as e:
                 # Log errors but continue processing other files
-                self.logger.error(f"Error reading data file {file}: {str(e)}")
+                self.logger.error(
+                    f"Error reading data file {file}: {str(e)}")
         
         return all_data
     
@@ -592,13 +643,15 @@ class AnalysisHandler(OperationHandler):
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         
         # Save analysis results as JSON
-        output_file = os.path.join(analysis_dir, f"analysis_{timestamp}.json")
+        output_file = os.path.join(
+            analysis_dir, f"analysis_{timestamp}.json")
         with open(output_file, 'w') as f:
             json.dump(results, f)
         
         # Save visualization figures as images
         for i, fig in enumerate(figures):
-            fig_path = os.path.join(analysis_dir, f"figure_{i}_{timestamp}.png")
+            fig_path = os.path.join(
+                analysis_dir, f"figure_{i}_{timestamp}.png")
             fig.savefig(fig_path)
         
         self.logger.info(f"Analysis complete. Results saved to {output_file}")
@@ -611,23 +664,30 @@ class PredictionHandler(OperationHandler):
     """
     Handler for the trend prediction operation mode.
     
-    This handler manages the process of training predictive models on historical data
-    and generating forecasts for future environmental conditions.
+    This handler manages the process of training predictive models on historical
+    data and generating forecasts for future environmental conditions.
     
     Attributes:
         timeframe (TimeFrame): Time period for prediction
-        sensor_id (Optional[str]): ID of a specific sensor to predict for, or None for all
+        sensor_id (Optional[str]): ID of a specific sensor to predict for,
+            or None for all
     """
     
-    def __init__(self, config: Dict, logger: logging.Logger, timeframe_str: str, sensor_id: Optional[str] = None):
+    def __init__(
+            self,
+            config: Dict,
+            logger: logging.Logger,
+            timeframe_str: str,
+            sensor_id: Optional[str] = None):
         """
         Initialize the prediction handler.
         
         Args:
             config (Dict): Application configuration dictionary
             logger (logging.Logger): Application logger
-            timeframe_str (str): Time period for prediction in format '24h', '7d', etc.
-            sensor_id (Optional[str]): ID of a specific sensor to predict for, or None for all
+            timeframe_str (str): Time period for prediction (e.g. '24h', '7d')
+            sensor_id (Optional[str]): ID of a specific sensor to predict for,
+                or None for all
         """
         super().__init__(config, logger)
         # Convert timeframe string to TimeFrame object
@@ -638,15 +698,16 @@ class PredictionHandler(OperationHandler):
         """
         Execute the trend prediction operation.
         
-        Loads historical data, trains or loads predictive models, generates forecasts,
-        and saves results to disk.
+        Loads historical data, trains or loads predictive models, generates
+        forecasts, and saves results to disk.
         
         Returns:
             None
         """
         # Calculate prediction horizon in hours
         prediction_horizon = self.timeframe.get_hours()
-        self.logger.info(f"Generating predictions for next {prediction_horizon} hours")
+        self.logger.info(
+            f"Generating predictions for next {prediction_horizon} hours")
         
         # Initialize prediction model with configuration
         prediction_model = PredictionModel(self.config['prediction'])
@@ -655,7 +716,8 @@ class PredictionHandler(OperationHandler):
         training_data = self._load_training_data()
         
         # Train the model if needed or if retraining is configured
-        if not prediction_model.is_trained() or self.config['prediction'].get('retrain', False):
+        if not prediction_model.is_trained() or self.config['prediction'].get(
+                'retrain', False):
             self.logger.info("Training prediction model on historical data")
             prediction_model.train(training_data)
         
@@ -672,8 +734,8 @@ class PredictionHandler(OperationHandler):
         """
         Load historical data for training the predictive model.
         
-        This is a placeholder method - in a real implementation, this would load
-        and prepare actual historical data from the system.
+        This is a placeholder method - in a real implementation, this would
+        load and prepare actual historical data from the system.
         
         Returns:
             pd.DataFrame: DataFrame containing historical data for training
@@ -695,11 +757,11 @@ class PredictionHandler(OperationHandler):
         """
         Prepare the most recent data as input for the prediction model.
         
-        This is a placeholder method - in a real implementation, this would load
-        and prepare the most recent data as input for prediction.
+        This is a placeholder method - in a real implementation, this would
+        load and prepare the most recent data as input for prediction.
         
         Returns:
-            pd.DataFrame: DataFrame containing recent data for prediction input
+            pd.DataFrame: DataFrame with recent data for prediction input
         """
         # Note: This is a placeholder implementation
         self.logger.info("Preparing recent data as input for prediction")
@@ -727,13 +789,15 @@ class PredictionHandler(OperationHandler):
         
         # Generate timestamp for output file
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        output_file = os.path.join(prediction_dir, f"prediction_{timestamp}.json")
+        output_file = os.path.join(
+            prediction_dir, f"prediction_{timestamp}.json")
         
         # Save prediction results as JSON
         with open(output_file, 'w') as f:
             json.dump(predictions, f)
         
-        self.logger.info(f"Prediction complete. Results saved to {output_file}")
+        self.logger.info(
+            f"Prediction complete. Results saved to {output_file}")
 
 #-----------------------------------------------------------------------------
 # API SERVER HANDLER
@@ -743,21 +807,22 @@ class APIHandler(OperationHandler):
     """
     Handler for the API server operation mode.
     
-    This handler manages the process of starting and running the RESTful API server
-    that provides external access to EcoTrack data and functionality.
+    This handler manages the process of starting and running the RESTful API
+    server that provides external access to EcoTrack data and functionality.
     """
     
     def execute(self) -> None:
         """
         Execute the API server operation.
         
-        Initializes and starts the RESTful API server, which runs until interrupted.
+        Initializes and starts the RESTful API server, which runs until
+        interrupted.
         
         Returns:
             None
             
         Raises:
-            RuntimeError: If the server fails to start or encounters a critical error
+            RuntimeError: If the server fails to start or encounters an error
         """
         self.logger.info("Starting API server")
         
@@ -771,7 +836,8 @@ class APIHandler(OperationHandler):
             
             # Initialize and start the API server
             api_server = APIServer(api_config)
-            api_server.start()  # This will typically block until the server is stopped
+            # This will typically block until the server is stopped
+            api_server.start()
         except Exception as e:
             # Log error and re-raise as RuntimeError
             self.logger.error(f"Failed to start API server: {str(e)}")
@@ -802,7 +868,6 @@ def main():
         # Handle unexpected errors
         print(f"Error: {str(e)}")
         sys.exit(1)
-
 
 # Run the application if this script is executed directly
 if __name__ == "__main__":
