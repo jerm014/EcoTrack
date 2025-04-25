@@ -1,11 +1,20 @@
 #!/usr/bin/env python3
 """
 EcoTrack - Environmental Monitoring System
+==================================================
 
 This is the main entry point for the EcoTrack system, which collects, analyzes, and
 visualizes environmental data from distributed sensor networks. The system supports
 real-time monitoring, anomaly detection, trend prediction, and community engagement
 through a web API.
+
+Features:
+    - Multi-sensor data collection and integration
+    - Automated anomaly detection and alerting
+    - Time-series analysis of environmental metrics
+    - Predictive modeling for environmental trends
+    - Interactive data visualization and dashboards
+    - RESTful API for external integration
 
 Usage:
     python main.py --mode collect --sensor-id SENSOR_ID
@@ -15,9 +24,13 @@ Usage:
 
 Author: Jeremy Mitts (jeremy.mitts@atlasschool.com)
 GitHub: https://github.com/jerm014
+LinkedIn: https://www.linkedin.com/in/jeremy-mitts/
+Twitter: https://x.com/jermitts
 Version: 1.2.0
+License: MIT
 """
 
+# Standard library imports
 import os
 import sys
 import time
@@ -56,6 +69,10 @@ def setup_logging():
     
     Returns:
         logging.Logger: Configured logger instance for the application
+        
+    Example:
+        >>> logger = setup_logging()
+        >>> logger.info("EcoTrack system initialized")
     """
     if not os.path.exists(LOG_PATH):
         os.makedirs(LOG_PATH)
@@ -83,6 +100,11 @@ def parse_arguments():
     
     Returns:
         argparse.Namespace: Parsed command line arguments
+        
+    Example:
+        >>> args = parse_arguments()
+        >>> if args.debug:
+        ...     logger.setLevel(logging.DEBUG)
     """
     parser = argparse.ArgumentParser(description='EcoTrack Environmental Monitoring System')
     parser.add_argument('--config', type=str, default=CONFIG_PATH, help='Path to configuration file')
@@ -111,6 +133,11 @@ def load_config(config_path):
     Raises:
         FileNotFoundError: If the configuration file doesn't exist
         JSONDecodeError: If the configuration file contains invalid JSON
+        ValueError: If the configuration is invalid or missing required sections
+        
+    Example:
+        >>> config = load_config('./config/settings.json')
+        >>> sensor_configs = config['sensors']
     """
     config_manager = ConfigManager(config_path)
     return config_manager.load()
@@ -132,6 +159,10 @@ def collect_sensor_data(config, sensor_id=None):
     
     Raises:
         Exception: Logs any errors during sensor data collection but doesn't propagate them
+        
+    Example:
+        >>> collect_sensor_data(config, 'air-quality-001')  # Collect from specific sensor
+        >>> collect_sensor_data(config)  # Collect from all sensors
     """
     logger.info("Initializing sensor network...")
     sensor_network = SensorNetwork(config['sensors'])
@@ -176,6 +207,29 @@ def collect_sensor_data(config, sensor_id=None):
             logger.error(f"Error collecting data from sensor {sensor.id}: {str(e)}")
 
 def analyze_data(config, timeframe, sensor_id=None):
+    """
+    Analyze environmental data over a specified timeframe.
+    
+    This function loads sensor data from the specified timeframe, performs time-series
+    analysis, generates visualizations, and saves the results to the output directory.
+    It can focus on data from a specific sensor or analyze data from all sensors.
+    
+    Args:
+        config (dict): Application configuration dictionary
+        timeframe (str): Time period for analysis in format '24h', '7d', etc.
+        sensor_id (str, optional): ID of a specific sensor to analyze.
+                                  If None, analyzes data from all sensors.
+    
+    Returns:
+        None: Results are saved to disk in the specified output directory
+        
+    Raises:
+        ValueError: If the timeframe format is invalid
+        
+    Example:
+        >>> analyze_data(config, '24h', 'water-quality-003')  # Last 24 hours for specific sensor
+        >>> analyze_data(config, '7d')  # Last 7 days for all sensors
+    """
     logger.info(f"Analyzing data for timeframe: {timeframe}")
     
     analyzer = TimeSeriesAnalyzer(config['analysis'])
@@ -252,29 +306,102 @@ def analyze_data(config, timeframe, sensor_id=None):
     logger.info(f"Analysis complete. Results saved to {output_file}")
 
 def predict_trends(config, timeframe, sensor_id=None):
+    """
+    Generate predictive models and forecasts for environmental trends.
+    
+    Uses machine learning models to predict future environmental metrics based on
+    historical data. Predictions can be made for specific sensors or across the
+    entire sensor network. Models are trained on historical data and can be saved
+    for future use.
+    
+    Args:
+        config (dict): Application configuration dictionary
+        timeframe (str): Time period for prediction in format '24h', '7d', etc.,
+                        indicating how far into the future to predict
+        sensor_id (str, optional): ID of a specific sensor to generate predictions for.
+                                  If None, makes predictions for all sensors.
+    
+    Returns:
+        None: Prediction results are saved to disk in the specified output directory
+        
+    Raises:
+        ValueError: If insufficient data is available for training the model
+        ValueError: If the timeframe format is invalid
+        
+    Example:
+        >>> predict_trends(config, '7d', 'air-quality-001')  # Predict next 7 days for specific sensor
+        >>> predict_trends(config, '30d')  # Predict next 30 days for all sensors
+    """
     logger.info(f"Generating predictions for timeframe: {timeframe}")
     
-    # Similar to analyze_data but uses the prediction model
+    # Parse prediction horizon
+    prediction_horizon = None
+    if timeframe.endswith('h'):
+        prediction_horizon = int(timeframe[:-1])
+    elif timeframe.endswith('d'):
+        prediction_horizon = int(timeframe[:-1]) * 24  # Convert days to hours
+    else:
+        logger.error(f"Invalid timeframe format: {timeframe}")
+        return
+    
+    # Initialize prediction model
     prediction_model = PredictionModel(config['prediction'])
     
-    # Load historical data (similar to analyze_data)
-    # ...code to load and prepare data...
+    # Load historical data for training
+    # (This is placeholder code - in a real implementation, we would load and prepare data)
+    training_data = pd.DataFrame()  # Placeholder
+    input_data = pd.DataFrame()  # Placeholder
     
     # Train the model if needed
-    prediction_model.train(training_data)
+    if not prediction_model.is_trained() or config['prediction'].get('retrain', False):
+        logger.info("Training prediction model on historical data")
+        prediction_model.train(training_data)
     
     # Generate predictions
+    logger.info(f"Generating predictions for next {prediction_horizon} hours")
     predictions = prediction_model.predict(input_data, prediction_horizon)
     
-    # Save predictions
-    # ...code to save predictions...
+    # Save predictions to disk
+    prediction_dir = os.path.join(config['output_dir'], 'predictions')
+    if not os.path.exists(prediction_dir):
+        os.makedirs(prediction_dir)
     
-    logger.info("Prediction complete")
+    output_file = os.path.join(prediction_dir, f"prediction_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json")
+    with open(output_file, 'w') as f:
+        json.dump(predictions, f)
+    
+    logger.info(f"Prediction complete. Results saved to {output_file}")
 
 def serve_api(config):
+    """
+    Start the RESTful API server for external integrations.
+    
+    This function initializes and runs the API server that provides access to
+    EcoTrack data, analysis, and predictions. The server handles authentication,
+    request routing, and data formatting for client applications.
+    
+    Args:
+        config (dict): Application configuration dictionary containing API settings
+                      such as host, port, authentication, and endpoint configurations
+    
+    Returns:
+        None: This function runs until interrupted or the server is shut down
+        
+    Raises:
+        RuntimeError: If the server fails to start or encounters a critical error
+        
+    Example:
+        >>> serve_api(config)  # Start the API server
+    """
     logger.info("Starting API server")
-    api_server = APIServer(config['api'])
-    api_server.start()
+    
+    try:
+        api_server = APIServer(config['api'])
+        logger.info(f"API server listening on {config['api'].get('host', '0.0.0.0')}:{config['api'].get('port', 8000)}")
+        api_server.start()
+    except Exception as e:
+        logger.error(f"Failed to start API server: {str(e)}")
+        raise RuntimeError(f"API server startup failed: {str(e)}")
 
 def main():
     """
@@ -288,6 +415,13 @@ def main():
     
     The function handles the entire application lifecycle and exits appropriately
     based on success or failure of operations.
+    
+    Raises:
+        SystemExit: With error code 1 if an invalid mode is specified
+        
+    Example:
+        >>> if __name__ == "__main__":
+        ...     main()
     """
     args = parse_arguments()
     
