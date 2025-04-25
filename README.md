@@ -87,6 +87,15 @@ npm test
 - [ ] Offline mode for remote sensor deployments
 - [ ] Mobile app with augmented reality features
 
+## 👨‍💻 Lead Developer
+
+EcoTrack was developed by Jeremy Mitts, a Machine Learning specialist with expertise in Python, data analysis, and predictive modeling. Jeremy brings experience from Tech Innovators Inc. and Tulsa Data Solutions, where he developed models that improved fraud detection and created data visualization dashboards. His background in natural language processing and collaborative project leadership has been instrumental in creating EcoTrack's intuitive environmental monitoring platform.
+
+Connect with Jeremy at [jeremymitts.com](https://jeremymitts.com/):
+- [LinkedIn](https://www.linkedin.com/in/jeremy-mitts/)
+- [Twitter](https://x.com/jermitts)
+- [Portfolio Projects](https://github.com/jerm014?tab=repositories)
+
 ## 👥 Contributing
 
 We welcome contributions from developers, environmental scientists, community organizers, and anyone passionate about environmental monitoring! Please see our [Contributing Guidelines](CONTRIBUTING.md) for more information.
